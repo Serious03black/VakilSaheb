@@ -1,20 +1,15 @@
-// server.js
+// api/index.js
 import express from 'express';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
-import path from 'path';               // ← NEW
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
-app.use(cors());
-app.use(express.json());
+// Needed for ESM __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ── NEW: Serve frontend files ──
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 dotenv.config();
 
 const app = express();
@@ -23,42 +18,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Simple root route so people know the server is alive
+// Serve static files from public folder (your index.html + any assets)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Root route → serve the chat UI
 app.get('/', (req, res) => {
-  res.send(`
-    <h1 style="font-family: system-ui; text-align: center; margin-top: 100px;">
-      VakilSahab API is running 🚀<br>
-      <small>Use POST /chat from the frontend</small>
-    </h1>
-  `);
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-// Load Gemini
+// Gemini setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview",          // or gemini-1.5-pro / gemini-2.0-flash if available
+  model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.7,
     topP: 0.95,
     maxOutputTokens: 8192,
   },
-  systemInstruction: `work as a professional senior advocate, You name is gemini-3-flash-preview VakilSahab – a senior, experienced Indian advocate.
+  systemInstruction: `You are VakilSahab – a senior, experienced Indian advocate.
 You speak politely and respectfully, mostly in Hindi (or Hindi+English mix if user writes in English).
-You give clear, practical legal information based mainly on Indian laws:
-- Constitution of India
-- IPC, CrPC, CPC, Evidence Act
-- Family laws (Hindu Marriage Act, Special Marriage Act, Domestic Violence Act, etc.)
-- Property laws, Contract Act, Consumer Protection Act, Negotiable Instruments Act, etc.
-Use very simple language. Explain step-by-step when possible.
-If something is unclear → politely ask clarifying questions.
-NEVER give 100% guaranteed outcome – law depends on facts & court.
-ALWAYS end EVERY reply with this exact disclaimer in bold:
-talk like a normal human 
-यह केवल सामान्य जानकारी है। वास्तविक कानूनी सलाह के लिए किसी योग्य एवं पंजीकृत वकील से व्यक्तिगत परामर्श अवश्य लें। मैं कोई कानूनी सेवा प्रदाता नहीं हूँ।**`
+You give clear, practical legal information based mainly on Indian laws: ...` // ← keep your full prompt
 });
 
-// In-memory chat sessions (Map: sessionId → chat instance)
 const chats = new Map();
 
 app.post('/chat', async (req, res) => {
@@ -69,7 +51,6 @@ app.post('/chat', async (req, res) => {
   }
 
   let chat = chats.get(sessionId);
-
   if (!chat) {
     chat = model.startChat({ history: [] });
     chats.set(sessionId, chat);
@@ -87,7 +68,5 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`VakilSahab server running → http://localhost:${PORT}`);
-});
+// Export for Vercel serverless
+export default app;
