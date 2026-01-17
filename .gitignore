@@ -1,0 +1,66 @@
+# ┌──────────────────────────────────────────────────────────────┐
+# │                     .gitignore for VakilSahab                │
+# └──────────────────────────────────────────────────────────────┘
+
+# ─── Node.js / npm ───────────────────────────────────────────────
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json      # ← keep this if you want exact versions, remove if you prefer not to commit it
+yarn.lock              # ← same logic as above
+
+# ─── Environment / Secrets ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# ─── Build / Dist / Output ───────────────────────────────────────
+dist/
+build/
+out/
+
+# ─── Editor / OS files ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ─── Logs & temporary files ──────────────────────────────────────
+*.log
+*.logs
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# ─── Local development servers ───────────────────────────────────
+*.pid
+*.seed
+*.pid.lock
+
+# ─── Optional: ignore test artifacts (if you add tests later) ─────
+coverage/
+.nyc_output/
+
+# ─── Optional: if you ever add frontend build tools ──────────────
+# .parcel-cache/
+# .vite/
+# .next/
+# .svelte-kit/
+
+# ─── Keep these files visible (examples) ─────────────────────────
+!/.env.example          # ← if you want to commit a template
+!/README.md
+!/index.html
+!/server.js
+
+# End of .gitignore

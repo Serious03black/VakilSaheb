@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>वकील साहब – कानूनी सलाहकार</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1e3a8a;
+      --light: #f8fafc;
+      --gray: #e2e8f0;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: var(--light);
+      color: #1e293b;
+    }
+    #chat-container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    #chat-messages {
+      height: 60vh;
+      min-height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .message {
+      margin: 12px 0;
+      padding: 12px 18px;
+      border-radius: 14px;
+      line-height: 1.5;
+      max-width: 82%;
+    }
+    .user {
+      background: var(--primary);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .bot {
+      background: var(--gray);
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+    #input-area {
+      display: flex;
+      padding: 16px;
+      border-top: 1px solid #e2e8f0;
+      background: white;
+    }
+    #user-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+    }
+    #user-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30,64,175,0.15);
+    }
+    #send-btn {
+      margin-left: 12px;
+      padding: 0 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #send-btn:hover { background: var(--primary-dark); }
+    #send-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .disclaimer {
+      font-size: 0.82rem;
+      color: #dc2626;
+      text-align: center;
+      padding: 12px 20px;
+      background: #fef2f2;
+      border-top: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-container">
+  <div id="chat-messages">
+    <div class="message bot">
+      नमस्ते! मैं हूँ <strong>वकील साहब</strong> — आपका कानूनी सहायक।<br><br>
+      अपनी समस्या, सवाल या स्थिति हिंदी या अंग्रेजी में बताइए।<br>
+      (उदाहरण: FIR, तलाक, प्रॉपर्टी विवाद, चेक बाउंस, कॉन्ट्रैक्ट आदि)
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    यह AI द्वारा दी गई जानकारी केवल सामान्य मार्गदर्शन के लिए है।<br>
+    वास्तविक कानूनी सलाह के लिए किसी पंजीकृत वकील से मिलें।
+  </div>
+
+  <div id="input-area">
+    <input type="text" id="user-input" placeholder="अपना सवाल लिखें..." autocomplete="off" autofocus />
+    <button id="send-btn">भेजें</button>
+  </div>
+</div>
+
+<script>
+  const chatMessages = document.getElementById('chat-messages');
+  const userInput = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  let sessionId = 'chat_' + Date.now().toString(36); // simple unique id
+
+  function addMessage(text, who = 'bot') {
+    const div = document.createElement('div');
+    div.className = `message ${who}`;
+    div.innerHTML = text.replace(/\n/g, '<br>')
+                       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = userInput.value.trim();
+    if (!text) return;
+
+    addMessage(text, 'user');
+    userInput.value = '';
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch('http://localhost:3000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, sessionId })
+      });
+
+      if (!res.ok) throw new Error('Server responded with error');
+
+      const data = await res.json();
+      addMessage(data.reply);
+    } catch (err) {
+      console.error(err);
+      addMessage('क्षमा करें, सर्वर से बात नहीं हो पा रही है। कृपया थोड़ी देर बाद प्रयास करें।');
+    } finally {
+      sendBtn.disabled = false;
+      userInput.focus();
+    }
+  }
+
+  sendBtn.onclick = sendMessage;
+
+  userInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>
