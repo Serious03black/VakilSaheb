@@ -117,8 +117,7 @@
   const userInput = document.getElementById('user-input');
   const sendBtn = document.getElementById('send-btn');
 
-  let sessionId = 'chat_' + Date.now().toString(36); // simple unique id
-
+  let sessionId = 'chat_' + Date.now().toString(36);
   function addMessage(text, who = 'bot') {
     const div = document.createElement('div');
     div.className = `message ${who}`;
@@ -137,7 +136,7 @@
     sendBtn.disabled = true;
 
     try {
-      const res = await fetch('http://localhost:3000/chat', {
+      const res = await fetch('https://vakil-saheb.vercel.app/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, sessionId })

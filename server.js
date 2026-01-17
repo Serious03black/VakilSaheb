@@ -3,7 +3,18 @@ import express from 'express';
 import cors from 'cors';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
+import path from 'path';               // ← NEW
 
+dotenv.config();
+app.use(cors());
+app.use(express.json());
+
+// ── NEW: Serve frontend files ──
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 dotenv.config();
 
 const app = express();
